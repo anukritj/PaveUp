@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import SubmitAckModal from './SubmitAckModal.jsx'
+import { analyzeCivicIssue } from '../utils/imageAnalysis.js'
 import potholeImg from '../images/pothole.jpeg'
 import garbageImg from '../images/Garbage.jpg'
 
@@ -25,19 +26,48 @@ export default function ReportForm() {
   const [showAck, setShowAck] = useState(false)
   const [errors, setErrors] = useState({ issue: '', photo: '', phone: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysis, setAnalysis] = useState(null)
 
   const disabled = useMemo(() => !issueType || !photo || !coords.lat || !coords.lng, [issueType, photo, coords])
 
   const onPickFile = useCallback(() => fileInputRef.current?.click(), [])
 
-  const onFileChange = useCallback((e) => {
+  const onFileChange = useCallback(async (e) => {
     const input = e.target
     const file = input.files?.[0]
     if (!file) return
+    
     setPhoto(file)
     const reader = new FileReader()
     reader.onload = () => setPhotoPreview(String(reader.result))
     reader.readAsDataURL(file)
+    
+    // Analyze image with GPT-4 Vision
+    setIsAnalyzing(true)
+    try {
+      const result = await analyzeCivicIssue(file)
+      if (result.success) {
+        setAnalysis(result.analysis)
+        // Auto-suggest issue type only if it's a confirmed civic issue
+        if (result.analysis.isCivicIssue && result.analysis.issueType) {
+          const matchedOption = ISSUE_OPTIONS.find(opt => 
+            opt.label.toLowerCase().includes(result.analysis.issueType.toLowerCase()) ||
+            result.analysis.issueType.toLowerCase().includes(opt.label.toLowerCase())
+          )
+          if (matchedOption) {
+            setIssueType(matchedOption.value)
+          }
+        }
+      } else {
+        setAnalysis(result.fallback)
+      }
+    } catch (error) {
+      console.error('Image analysis failed:', error)
+    } finally {
+      setIsAnalyzing(false)
+    }
+    
     // allow re-uploading the same file by clearing the input value
     input.value = ''
   }, [])
@@ -132,7 +162,7 @@ export default function ReportForm() {
               <img src={photoPreview} alt="Preview" className="h-full w-full object-cover" />
               <button
                 type="button"
-                onClick={() => { setPhoto(null); setPhotoPreview(''); }}
+                onClick={() => { setPhoto(null); setPhotoPreview(''); setAnalysis(null); }}
                 className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white shadow hover:bg-red-600"
                 aria-label="Remove image"
               >
@@ -143,6 +173,102 @@ export default function ReportForm() {
           <input id="paveup-photo" ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
         </div>
         {errors.photo && <p className="text-xs text-red-600 mt-1">{errors.photo}</p>}
+        
+        {/* AI Analysis Results */}
+        {isAnalyzing && (
+          <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 text-blue-700">
+              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4"></path>
+              </svg>
+              <span className="text-sm font-medium">Analyzing image with AI...</span>
+            </div>
+          </div>
+        )}
+        
+        {analysis && (
+          <div className={`mt-3 p-4 rounded-lg border ${
+            analysis.issueType === 'Unclear Image' ? 'bg-red-50 border-red-300' :
+            analysis.isCivicIssue ? 'bg-green-50 border-green-200' : 
+            'bg-yellow-50 border-yellow-300'
+          }`}>
+            <h4 className={`text-sm font-semibold mb-2 ${
+              analysis.issueType === 'Unclear Image' ? 'text-red-800' :
+              analysis.isCivicIssue ? 'text-green-800' : 
+              'text-yellow-800'
+            }`}>🤖 AI Analysis Results</h4>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className={`font-medium ${
+                  analysis.issueType === 'Unclear Image' ? 'text-red-700' :
+                  analysis.isCivicIssue ? 'text-green-700' : 
+                  'text-yellow-700'
+                }`}>Issue Detected:</span> 
+                <span className={`ml-1 ${
+                  analysis.issueType === 'Unclear Image' ? 'text-red-600' :
+                  analysis.isCivicIssue ? 'text-green-600' : 
+                  'text-yellow-600'
+                }`}>{analysis.issueType}</span>
+                {analysis.isCivicIssue && analysis.severity && (
+                  <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+                    analysis.severity === 'High' ? 'bg-red-100 text-red-700' :
+                    analysis.severity === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-green-100 text-green-700'
+                  }`}>
+                    {analysis.severity} Priority
+                  </span>
+                )}
+              </div>
+              
+              {analysis.description && (
+                <div>
+                  <span className={`font-medium ${
+                    analysis.issueType === 'Unclear Image' ? 'text-red-700' :
+                    analysis.isCivicIssue ? 'text-green-700' : 
+                    'text-yellow-700'
+                  }`}>Description:</span>
+                  <p className={`mt-1 ${
+                    analysis.issueType === 'Unclear Image' ? 'text-red-600' :
+                    analysis.isCivicIssue ? 'text-green-600' : 
+                    'text-yellow-600'
+                  }`}>{analysis.description}</p>
+                </div>
+              )}
+              
+              {analysis.isCivicIssue && analysis.recommendedPortal && (
+                <div className="mt-3 p-3 bg-white rounded border border-green-300">
+                  <div className="font-medium text-green-800 mb-1">📍 Recommended Telangana Portal:</div>
+                  <div className="text-green-700">
+                    <div className="font-semibold">{analysis.recommendedPortal.name}</div>
+                    <div className="text-sm">{analysis.recommendedPortal.department}</div>
+                    {analysis.recommendedPortal.helpline && (
+                      <div className="text-sm mt-1">
+                        📞 Helpline: <span className="font-mono">{analysis.recommendedPortal.helpline}</span>
+                      </div>
+                    )}
+                    {analysis.recommendedPortal.website && (
+                      <div className="text-sm">
+                        🌐 Website: <a href={analysis.recommendedPortal.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{analysis.recommendedPortal.website}</a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {analysis.isCivicIssue && analysis.actionSteps && analysis.actionSteps.length > 0 && (
+                <div className="mt-2">
+                  <span className="font-medium text-green-700">Next Steps:</span>
+                  <ul className="list-disc list-inside text-green-600 text-xs mt-1 space-y-0.5">
+                    {analysis.actionSteps.map((step, idx) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {!photoPreview && (
@@ -213,6 +339,7 @@ export default function ReportForm() {
           setStatusMsg('')
           setName('')
           setPhone('')
+          setAnalysis(null)
           setShowAck(false)
         }}
       />

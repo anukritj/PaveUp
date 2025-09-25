@@ -56,7 +56,7 @@ function AppContent() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={
-            <section className="bg-gradient-to-br from-slate-50 via-white to-brand-50/30 min-h-screen">
+            <section className="min-h-screen">
               <div className="max-w-xl mx-auto px-4 sm:px-6 py-12 md:py-16">
                 <div className="text-center mb-8">
                   <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-3">
@@ -64,7 +64,7 @@ function AppContent() {
                   </h1>
                   <p className="text-slate-600 text-lg">Help us improve your neighborhood in under 30 seconds</p>
                 </div>
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 md:p-8 shadow-xl border border-white/20">
+                <div className="glass rounded-2xl p-6 md:p-8">
                   <ReportForm />
                 </div>
               </div>

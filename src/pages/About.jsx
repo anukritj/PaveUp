@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-50/30">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-8 md:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,7 +21,7 @@ export default function About() {
       {/* Our Vision Section */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-lg border border-white/30">
+          <div className="glass rounded-xl p-6 md:p-8">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Our Vision</h2>
             <div className="text-slate-700 leading-relaxed space-y-4">
               <p>
@@ -41,7 +41,7 @@ export default function About() {
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/30">
+            <div className="glass rounded-xl p-6">
               <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">What Problem Are We Solving?</h2>
               <div className="space-y-3 text-slate-700">
                 <p>
@@ -54,7 +54,7 @@ export default function About() {
                 </p>
               </div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/30">
+            <div className="glass rounded-xl p-6">
               <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">How It Works</h2>
               <div className="space-y-3 text-slate-700">
                 <p>
@@ -70,7 +70,7 @@ export default function About() {
       {/* Key Benefits Section */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/30">
+          <div className="glass rounded-xl p-6">
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-6">Key Benefits</h2>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="flex items-start gap-3">
@@ -128,7 +128,7 @@ export default function About() {
       {/* Call to Action Section */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-8 shadow-lg border border-white/30">
+          <div className="glass rounded-xl p-8">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
               Ready to make your streets better?
             </h2>

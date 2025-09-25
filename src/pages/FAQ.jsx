@@ -52,7 +52,7 @@ export default function FAQ() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-brand-50/30">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-8 md:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,7 +70,7 @@ export default function FAQ() {
       {/* FAQ Section */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/30">
+          <div className="glass rounded-xl">
             <div className="p-6 md:p-8">
               <div className="space-y-4">
                 {faqs.map((faq, index) => (
@@ -118,7 +118,7 @@ export default function FAQ() {
       {/* Call to Action Section */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-lg border border-white/30 text-center">
+          <div className="glass rounded-xl p-6 md:p-8 text-center">
             <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">
               Still have questions?
             </h2>

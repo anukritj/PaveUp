@@ -12,7 +12,16 @@ html, body, #root {
 }
 
 body {
-  @apply bg-slate-50 text-slate-800 antialiased;
+  /* Keep typography and rendering crisp */
+  @apply text-slate-800 antialiased;
+  /* Minimal modern background with soft radial accents */
+  background-color: #f8fafc; /* slate-50 */
+  background-image:
+    radial-gradient(60% 60% at 10% 10%, rgba(31, 127, 255, 0.08), rgba(31, 127, 255, 0) 60%),
+    radial-gradient(50% 50% at 90% 10%, rgba(11, 77, 176, 0.08), rgba(11, 77, 176, 0) 60%),
+    radial-gradient(45% 45% at 50% 100%, rgba(79, 70, 229, 0.06), rgba(79, 70, 229, 0) 60%),
+    linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.9));
+  background-attachment: fixed;
 }
 
 .glass {
