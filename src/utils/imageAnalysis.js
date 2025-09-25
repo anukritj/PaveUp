@@ -3,7 +3,7 @@
  * Analyzes uploaded images and recommends Telangana government portals
  */
 
-const OPENAI_API_KEY = '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'
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
 
 /**
  * Converts image file to base64 data URL
