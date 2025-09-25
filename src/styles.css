@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PaveUp global styles */
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+.glass {
+  @apply bg-white/70 backdrop-blur-md shadow-xl ring-1 ring-black/5;
+}
+
+
