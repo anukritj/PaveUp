@@ -129,6 +129,15 @@ export default function ReportForm() {
 
   return (
     <form className="space-y-8" onSubmit={onSubmit}>
+      {/* Form header (moved inside the form as requested) */}
+      <div className="text-center mb-2">
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-2">
+          {t.homeTitle}
+        </h2>
+        <p className="text-slate-600">
+          {t.homeSubtitle}
+        </p>
+      </div>
       <div className="space-y-1">
         <label className="text-sm font-medium text-slate-700" htmlFor="issue">{t.issueTypeLabel} <span className="text-red-500">*</span></label>
         <select
