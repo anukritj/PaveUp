@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 
-export default function SubmitAckModal({ open, onClose, onAgain }) {
+export default function SubmitAckModal({ open, onClose, onAgain, portal, eta }) {
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose()
@@ -29,15 +29,29 @@ export default function SubmitAckModal({ open, onClose, onAgain }) {
                 <path d="M8 12l2.5 2.5L16 9" stroke="#10B981" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
-              Report Submitted
-            </h2>
-            <p className="mt-3 text-slate-600">
-              Thanks for helping improve your neighborhood. Your report has been received.
-            </p>
-            <div className="mt-6 rounded-xl bg-slate-50 p-4 text-slate-700">
-              Our partners will review your submission and take appropriate action.
-            </div>
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">Report Submitted</h2>
+            <p className="mt-3 text-slate-600">Thanks for helping improve your neighborhood. Your report has been received.</p>
+
+            {portal && (
+              <div className="mt-6 text-left rounded-xl bg-green-50 border border-green-200 p-4 text-green-800">
+                <div className="font-semibold mb-1 flex items-center gap-2">
+                  <span>📍 Routed to:</span>
+                  <span>{portal.name}</span>
+                </div>
+                {portal.department && <div className="text-sm">{portal.department}</div>}
+                <div className="mt-2 grid sm:grid-cols-2 gap-2 text-sm text-green-700">
+                  {portal.helpline && (
+                    <div>📞 Helpline: <span className="font-mono">{portal.helpline}</span></div>
+                  )}
+                  {portal.website && (
+                    <div>🌐 Website: <a href={portal.website} target="_blank" rel="noopener noreferrer" className="underline">{portal.website}</a></div>
+                  )}
+                </div>
+                {eta && (
+                  <div className="mt-3 text-sm">⏱️ Estimated resolution time: <span className="font-medium">{eta}</span></div>
+                )}
+              </div>
+            )}
             <div className="mt-7">
               <button onClick={onAgain} className="inline-flex items-center justify-center rounded-md bg-brand-600 px-4 py-2 font-medium text-white hover:bg-brand-700">
                 Report Another Issue

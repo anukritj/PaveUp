@@ -68,7 +68,7 @@ function AppContent() {
               <div className="leading-tight">
                 <h1 className={`font-bold tracking-tight text-slate-900 transition-all ${isScrolled ? 'text-lg' : 'text-xl'}`}>PaveUp</h1>
                 {!isScrolled && (
-                  <p className="text-xs text-slate-500 font-medium">{t.tagline}</p>
+                  <p className="hidden sm:block text-xs text-slate-500 font-medium">{t.tagline}</p>
                 )}
               </div>
             </Link>
@@ -93,7 +93,6 @@ function AppContent() {
                 >
                   {t.navFAQ}
                 </Link>
-                <a className="hover:text-brand-600 transition-colors" href="#contact">{t.navContact}</a>
               </nav>
               <LanguageToggle />
               {/* Mobile hamburger */}
@@ -138,9 +137,7 @@ function AppContent() {
                   {location.pathname === '/faq' && <span className="text-brand-600 text-xs font-semibold">•</span>}
                 </Link>
               </li>
-              <li>
-                <a onClick={() => setMobileOpen(false)} href="#contact" className="block rounded-lg px-3 py-2 hover:bg-slate-50">{t.navContact}</a>
-              </li>
+              
             </ul>
           </nav>
         </div>
@@ -207,7 +204,7 @@ function AppContent() {
               {/* Content */}
               <div className="relative z-10 max-w-xl mx-auto px-4 sm:px-6 py-12 md:py-16">
                 
-                <div className="glass rounded-2xl p-6 md:p-8 backdrop-blur-sm bg-white/80 border border-white/20 shadow-xl">
+                <div className="glass-deep glass-hover rounded-2xl p-6 md:p-8">
                   <ReportForm />
                 </div>
               </div>
