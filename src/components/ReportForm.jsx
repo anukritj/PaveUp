@@ -3,18 +3,23 @@ import SubmitAckModal from './SubmitAckModal.jsx'
 import { analyzeCivicIssue } from '../utils/imageAnalysis.js'
 import potholeImg from '../images/pothole.jpeg'
 import garbageImg from '../images/Garbage.jpg'
-
-const ISSUE_OPTIONS = [
-  { value: 'pothole', label: 'Pothole' },
-  { value: 'garbage', label: 'Garbage' },
-  { value: 'electrical', label: 'Electric Hazard' },
-  { value: 'stray-cattle', label: 'Stray cattle' },
-  { value: 'debris', label: 'Construction Debris' },
-  { value: 'stagnant-water', label: 'Stagnant water' },
-  { value: 'burning-waste', label: 'Burning waste' },
-]
+import { useTranslations } from '../hooks/useTranslations.js'
+import { useLanguage } from '../context/LanguageContext.jsx'
 
 export default function ReportForm() {
+  const t = useTranslations();
+  const { language } = useLanguage();
+
+  const ISSUE_OPTIONS = useMemo(() => [
+    { value: 'pothole', label: t.issueOptions.pothole },
+    { value: 'garbage', label: t.issueOptions.garbage },
+    { value: 'electrical', label: t.issueOptions.electrical },
+    { value: 'stray-cattle', label: t.issueOptions.strayCattle },
+    { value: 'debris', label: t.issueOptions.debris },
+    { value: 'stagnant-water', label: t.issueOptions.stagnantWater },
+    { value: 'burning-waste', label: t.issueOptions.burningWaste },
+  ], [t]);
+
   const [issueType, setIssueType] = useState('')
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
@@ -46,7 +51,7 @@ export default function ReportForm() {
     // Analyze image with GPT-4 Vision
     setIsAnalyzing(true)
     try {
-      const result = await analyzeCivicIssue(file)
+      const result = await analyzeCivicIssue(file, language)
       if (result.success) {
         setAnalysis(result.analysis)
         // Auto-suggest issue type only if it's a confirmed civic issue
@@ -70,33 +75,33 @@ export default function ReportForm() {
     
     // allow re-uploading the same file by clearing the input value
     input.value = ''
-  }, [])
+  }, [language, ISSUE_OPTIONS, t])
 
   const detectLocation = useCallback(() => {
     if (!('geolocation' in navigator)) {
-      setStatusMsg('Geolocation not supported by this browser.')
+      setStatusMsg(t.locationNotSupported)
       return
     }
-    setStatusMsg('Detecting location…')
+    setStatusMsg(t.detectingLocation)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords
         setCoords({ lat: latitude.toFixed(6), lng: longitude.toFixed(6) })
-        setStatusMsg('Location detected ✓')
+        setStatusMsg(t.locationDetected)
       },
       (err) => {
-        setStatusMsg(`Failed to detect location: ${err.message}`)
+        setStatusMsg(`${t.locationError}${err.message}`)
       },
       { enableHighAccuracy: true, timeout: 10000 }
     )
-  }, [])
+  }, [t])
 
   const onSubmit = useCallback((e) => {
     e.preventDefault()
     const newErrors = { issue: '', photo: '', phone: '' }
-    if (!issueType) newErrors.issue = 'Please select an issue type.'
-    if (!photo) newErrors.photo = 'Please upload a photo.'
-    if (phone && phone.length !== 10) newErrors.phone = 'Enter a valid 10 digit phone number.'
+    if (!issueType) newErrors.issue = t.validationIssue
+    if (!photo) newErrors.photo = t.validationPhoto
+    if (phone && phone.length !== 10) newErrors.phone = t.validationPhone
     setErrors(newErrors)
     if (newErrors.issue || newErrors.photo || newErrors.phone) return
     const payload = {
@@ -115,7 +120,7 @@ export default function ReportForm() {
       setIsSubmitting(false)
       setShowAck(true)
     }, 2000)
-  }, [issueType, coords, name, phone, photo])
+  }, [issueType, coords, name, phone, photo, t])
 
   const setPhoneSafe = useCallback((val) => {
     const onlyNums = val.replace(/[^0-9]/g, '').slice(0, 10)
@@ -125,14 +130,14 @@ export default function ReportForm() {
   return (
     <form className="space-y-8" onSubmit={onSubmit}>
       <div className="space-y-1">
-        <label className="text-sm font-medium text-slate-700" htmlFor="issue">Issue Type <span className="text-red-500">*</span></label>
+        <label className="text-sm font-medium text-slate-700" htmlFor="issue">{t.issueTypeLabel} <span className="text-red-500">*</span></label>
         <select
           id="issue"
           value={issueType}
           onChange={(e) => setIssueType(e.target.value)}
           className="w-full rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 bg-white text-slate-700 font-medium shadow-sm transition-colors"
         >
-          <option value="" disabled>Select an issue…</option>
+          <option value="" disabled>{t.issueTypeLabel}...</option>
           {ISSUE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
@@ -141,7 +146,7 @@ export default function ReportForm() {
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Upload Photo <span className="text-red-500">*</span></label>
+        <label className="text-sm font-medium text-slate-700">{t.uploadPhotoLabel} <span className="text-red-500">*</span></label>
         <div className="relative">
           {!photoPreview ? (
             <label
@@ -154,7 +159,7 @@ export default function ReportForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
-                <p className="text-sm text-slate-500 group-hover:text-brand-600">Tap or click to upload image</p>
+                <p className="text-sm text-slate-500 group-hover:text-brand-600">{t.uploadPhotoPlaceholder}</p>
               </div>
             </label>
           ) : (
@@ -182,34 +187,18 @@ export default function ReportForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4"></path>
               </svg>
-              <span className="text-sm font-medium">Analyzing image with AI...</span>
+              <span className="text-sm font-medium">{t.analyzingWithAI}</span>
             </div>
           </div>
         )}
         
         {analysis && (
-          <div className={`mt-3 p-4 rounded-lg border ${
-            analysis.issueType === 'Unclear Image' ? 'bg-red-50 border-red-300' :
-            analysis.isCivicIssue ? 'bg-green-50 border-green-200' : 
-            'bg-yellow-50 border-yellow-300'
-          }`}>
-            <h4 className={`text-sm font-semibold mb-2 ${
-              analysis.issueType === 'Unclear Image' ? 'text-red-800' :
-              analysis.isCivicIssue ? 'text-green-800' : 
-              'text-yellow-800'
-            }`}>🤖 AI Analysis Results</h4>
+          <div className={`mt-3 p-4 rounded-lg border ${analysis.issueType === 'Unclear Image' ? 'bg-red-50 border-red-300' : analysis.isCivicIssue ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-300'}`}>
+            <h4 className={`text-sm font-semibold mb-2 ${analysis.issueType === 'Unclear Image' ? 'text-red-800' : analysis.isCivicIssue ? 'text-green-800' : 'text-yellow-800'}`}>🤖 {t.aiAnalysisTitle}</h4>
             <div className="space-y-2 text-sm">
               <div>
-                <span className={`font-medium ${
-                  analysis.issueType === 'Unclear Image' ? 'text-red-700' :
-                  analysis.isCivicIssue ? 'text-green-700' : 
-                  'text-yellow-700'
-                }`}>Issue Detected:</span> 
-                <span className={`ml-1 ${
-                  analysis.issueType === 'Unclear Image' ? 'text-red-600' :
-                  analysis.isCivicIssue ? 'text-green-600' : 
-                  'text-yellow-600'
-                }`}>{analysis.issueType}</span>
+                <span className={`font-medium ${analysis.issueType === 'Unclear Image' ? 'text-red-700' : analysis.isCivicIssue ? 'text-green-700' : 'text-yellow-700'}`}>{t.aiIssueDetected}</span> 
+                <span className={`ml-1 ${analysis.issueType === 'Unclear Image' ? 'text-red-600' : analysis.isCivicIssue ? 'text-green-600' : 'text-yellow-600'}`}>{analysis.issueType}</span>
                 {analysis.isCivicIssue && analysis.severity && (
                   <span className={`ml-2 px-2 py-0.5 rounded text-xs font-medium ${
                     analysis.severity === 'High' ? 'bg-red-100 text-red-700' :
@@ -223,22 +212,14 @@ export default function ReportForm() {
               
               {analysis.description && (
                 <div>
-                  <span className={`font-medium ${
-                    analysis.issueType === 'Unclear Image' ? 'text-red-700' :
-                    analysis.isCivicIssue ? 'text-green-700' : 
-                    'text-yellow-700'
-                  }`}>Description:</span>
-                  <p className={`mt-1 ${
-                    analysis.issueType === 'Unclear Image' ? 'text-red-600' :
-                    analysis.isCivicIssue ? 'text-green-600' : 
-                    'text-yellow-600'
-                  }`}>{analysis.description}</p>
+                  <span className={`font-medium ${analysis.issueType === 'Unclear Image' ? 'text-red-700' : analysis.isCivicIssue ? 'text-green-700' : 'text-yellow-700'}`}>{t.aiDescription}</span>
+                  <p className={`mt-1 ${analysis.issueType === 'Unclear Image' ? 'text-red-600' : analysis.isCivicIssue ? 'text-green-600' : 'text-yellow-600'}`}>{analysis.description}</p>
                 </div>
               )}
               
               {analysis.isCivicIssue && analysis.recommendedPortal && (
                 <div className="mt-3 p-3 bg-white rounded border border-green-300">
-                  <div className="font-medium text-green-800 mb-1">📍 Recommended Telangana Portal:</div>
+                  <div className="font-medium text-green-800 mb-1">📍 {t.aiRecommendedPortal}</div>
                   <div className="text-green-700">
                     <div className="font-semibold">{analysis.recommendedPortal.name}</div>
                     <div className="text-sm">{analysis.recommendedPortal.department}</div>
@@ -258,7 +239,7 @@ export default function ReportForm() {
               
               {analysis.isCivicIssue && analysis.actionSteps && analysis.actionSteps.length > 0 && (
                 <div className="mt-2">
-                  <span className="font-medium text-green-700">Next Steps:</span>
+                  <span className="font-medium text-green-700">{t.aiNextSteps}</span>
                   <ul className="list-disc list-inside text-green-600 text-xs mt-1 space-y-0.5">
                     {analysis.actionSteps.map((step, idx) => (
                       <li key={idx}>{step}</li>
@@ -273,29 +254,29 @@ export default function ReportForm() {
 
       {!photoPreview && (
       <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-700">Example Images:</p>
+        <p className="text-sm font-medium text-slate-700">{t.exampleImages}</p>
         <div className="grid grid-cols-2 gap-3">
           <figure className="overflow-hidden rounded-lg border">
             <img src={potholeImg} alt="Pothole example" className="h-28 w-full object-cover" />
-            <figcaption className="px-2 py-1 text-xs text-slate-700">Pothole Example</figcaption>
+            <figcaption className="px-2 py-1 text-xs text-slate-700">{t.examplePothole}</figcaption>
           </figure>
           <figure className="overflow-hidden rounded-lg border">
             <img src={garbageImg} alt="Garbage example" className="h-28 w-full object-cover" />
-            <figcaption className="px-2 py-1 text-xs text-slate-700">Garbage Example</figcaption>
+            <figcaption className="px-2 py-1 text-xs text-slate-700">{t.exampleGarbage}</figcaption>
           </figure>
         </div>
       </div>
       )}
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-slate-700">Location</label>
+        <label className="text-sm font-medium text-slate-700">{t.locationLabel}</label>
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" onClick={detectLocation} className="inline-flex items-center gap-2 rounded-lg bg-brand-600 text-white px-4 py-3 hover:bg-brand-700 font-medium shadow-lg hover:shadow-xl transition-all duration-200">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span>Detect My Location</span>
+            <span>{t.detectLocationBtn}</span>
           </button>
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <span className="px-2 py-1 bg-slate-100 rounded">Lat: {coords.lat || '-'}</span>
@@ -307,13 +288,13 @@ export default function ReportForm() {
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Name (optional)</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="w-full rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm transition-colors" />
+          <label className="block text-sm font-medium text-slate-700 mb-2">{t.nameLabel}</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t.nameLabel} className="w-full rounded-lg border border-slate-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm transition-colors" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Phone (optional)</label>
-          <input value={phone} onChange={(e) => setPhoneSafe(e.target.value)} placeholder="10-digit number" inputMode="numeric" className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm transition-colors ${errors.phone ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:border-brand-500'}`} />
-          <p className={`text-xs mt-1 ${errors.phone ? 'text-red-600' : 'text-slate-500'}`}>{errors.phone || 'Numbers only, exactly 10 digits if provided'}</p>
+          <label className="block text-sm font-medium text-slate-700 mb-2">{t.phoneLabel}</label>
+          <input value={phone} onChange={(e) => setPhoneSafe(e.target.value)} placeholder={t.phoneLabel} inputMode="numeric" className={`w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm transition-colors ${errors.phone ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-slate-300 focus:border-brand-500'}`} />
+          <p className={`text-xs mt-1 ${errors.phone ? 'text-red-600' : 'text-slate-500'}`}>{errors.phone || t.phoneHint}</p>
         </div>
       </div>
 
@@ -324,7 +305,7 @@ export default function ReportForm() {
             <path className="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4"></path>
           </svg>
         )}
-        {isSubmitting ? 'Submitting…' : 'Submit Report'}
+        {isSubmitting ? t.submitting : t.submitBtn}
       </button>
 
       <SubmitAckModal

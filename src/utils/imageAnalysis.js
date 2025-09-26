@@ -1,5 +1,5 @@
 /**
- * OpenAI GPT-4 Vision integration for civic issue analysis
+ * OpenAI GPT-4.1 Nano integration for civic issue analysis
  * Analyzes uploaded images and recommends Telangana government portals
  */
 
@@ -22,14 +22,20 @@ function imageToBase64(imageFile) {
 /**
  * Analyzes civic issue image using OpenAI GPT-4.1 Nano
  * @param {File} imageFile - The image file to analyze
+ * @param {string} language - Language code ('en' for English, 'te' for Telugu)
  * @returns {Promise<Object>} Analysis result with issue type and portal recommendation
  */
-export async function analyzeCivicIssue(imageFile) {
+export async function analyzeCivicIssue(imageFile, language = 'en') {
   try {
     // Convert image to base64
     const base64Image = await imageToBase64(imageFile)
-    
+
+    // Set language name dynamically for prompts
+    const languageName = language === 'te' ? 'Telugu' : 'English'
+
     const prompt = `You are an expert image analyst. Your first task is to determine if the provided image contains a recognizable civic issue (like a pothole, garbage, broken infrastructure, etc.).
+
+**IMPORTANT: Your entire response must be in the ${languageName} language.**
 
 If it **is** a civic issue, analyze it for Telangana, India, and provide a JSON response with the following structure:
 {
@@ -70,7 +76,7 @@ If the image is **too blurry or unclear** to analyze, provide this JSON structur
 
 Respond only with valid JSON.`
 
-    // Call OpenAI Responses API
+    // Call OpenAI Responses API with GPT-4.1-nano
     const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: {
@@ -89,7 +95,12 @@ Respond only with valid JSON.`
             }
           ],
           max_output_tokens: 1500,
-          temperature: 0.2
+          temperature: 0.2,
+          text: {
+            format: {
+              type: 'json_object'  // ✅ Forces the model to output strict JSON
+            }
+          }
         })
       })
       
@@ -97,13 +108,15 @@ Respond only with valid JSON.`
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
       console.error('OpenAI API Error Details:', errorData)
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`)
+      throw new Error(
+        `OpenAI API error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`
+      )
     }
 
     const data = await response.json()
     console.log('GPT-4.1-nano response:', data)
 
-    // Extract model output
+    // Extract the actual text output
     const analysisText = data.output[0].content[0].text
 
     // Parse structured JSON
@@ -135,7 +148,6 @@ Respond only with valid JSON.`
         }
       }
     }
-
   } catch (error) {
     console.error('GPT-4.1-nano analysis error:', error)
     return {
@@ -164,21 +176,21 @@ Respond only with valid JSON.`
  */
 export function getTelanganaPortal(issueType) {
   const portals = {
-    'pothole': {
+    pothole: {
       name: 'GHMC Roads Division',
       department: 'Greater Hyderabad Municipal Corporation',
       website: 'https://ghmc.gov.in',
       helpline: '040-21111111',
       onlineComplaint: 'https://grievance.ghmc.gov.in'
     },
-    'garbage': {
+    garbage: {
       name: 'GHMC Sanitation Division',
       department: 'Greater Hyderabad Municipal Corporation',
       website: 'https://ghmc.gov.in',
       helpline: '040-21111111',
       onlineComplaint: 'https://grievance.ghmc.gov.in'
     },
-    'electrical': {
+    electrical: {
       name: 'TSSPDCL/TSNPDCL',
       department: 'Telangana State Electricity Board',
       website: 'https://www.tssouthernpower.com',
@@ -192,7 +204,7 @@ export function getTelanganaPortal(issueType) {
       helpline: '040-21111111',
       onlineComplaint: 'https://grievance.ghmc.gov.in'
     },
-    'debris': {
+    debris: {
       name: 'GHMC Engineering Division',
       department: 'Greater Hyderabad Municipal Corporation',
       website: 'https://ghmc.gov.in',
